@@ -23,9 +23,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public String register(@RequestBody RegisterRequest req) {
-        if (userRepo.existsByName(req.getName())) return "Tên đăng nhập đã tồn tại";
+        if (userRepo.existsByUsername(req.getName())) return "Tên đăng nhập đã tồn tại";
         User u = User.builder()
-                .name(req.getName())
+                .username(req.getName())
                 .password(passwordEncoder.encode(req.getPassword()))
                 .phone(req.getPhone())
                 .address(req.getAddress())
@@ -38,10 +38,18 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthRequest req) {
         authManager.authenticate(new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword()));
-        User user = userRepo.findByName(req.getUsername()).orElseThrow();
-        String token = jwtService.generateToken(user.getName(), user.getRole().name());
+        User user = userRepo.findByUsername(req.getUsername()).orElseThrow();
+        String token = jwtService.generateToken(user.getUsername(), user.getRole().name());
         long expiresAt = System.currentTimeMillis() + 86400000L;
-        return new AuthResponse(token, user.getName(), user.getRole().name(), expiresAt);
+        return new AuthResponse(
+                token,
+                user.getUsername(),
+                user.getRole().name(),
+                user.getFullName(),
+                user.getPhone(),
+                user.getAddress(),
+                expiresAt
+                );
     }
 }
 

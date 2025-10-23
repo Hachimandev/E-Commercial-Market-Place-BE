@@ -17,5 +17,21 @@ public class ECommercialMarketPlaceBeApplication {
     }
 
 
+    @Bean
+    CommandLineRunner initDatabase(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        return args -> {
+            if (userRepository.findByUsername("admin").isEmpty()) {
+                User admin = new User();
+                admin.setUsername("admin");
+                admin.setPassword(passwordEncoder.encode("admin123"));
+                admin.setRole(Role.SELLER);
+                admin.setFullName("Nguyen Van Admin");
+                admin.setPhone("0909999999");
+                admin.setAddress("HCM City");
 
+                userRepository.save(admin);
+                System.out.println("✅ Created default admin user");
+            }
+        };
+    }
 }
