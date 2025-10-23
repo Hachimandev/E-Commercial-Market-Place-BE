@@ -37,8 +37,8 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthRequest req) {
-        authManager.authenticate(new UsernamePasswordAuthenticationToken(req.getName(), req.getPassword()));
-        User user = userRepo.findByName(req.getName()).orElseThrow();
+        authManager.authenticate(new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword()));
+        User user = userRepo.findByName(req.getUsername()).orElseThrow();
         String token = jwtService.generateToken(user.getName(), user.getRole().name());
         long expiresAt = System.currentTimeMillis() + 86400000L;
         return new AuthResponse(token, user.getName(), user.getRole().name(), expiresAt);
