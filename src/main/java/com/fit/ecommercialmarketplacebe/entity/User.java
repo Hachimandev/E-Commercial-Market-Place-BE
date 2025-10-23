@@ -12,8 +12,9 @@ import lombok.*;
 public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer userId;
-    private String name;
+    private String username;
     private String password;
+    private String fullName;
     private String phone;
     private String address;
     @Enumerated(EnumType.STRING)
