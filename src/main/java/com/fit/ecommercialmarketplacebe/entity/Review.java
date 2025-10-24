@@ -1,5 +1,6 @@
 package com.fit.ecommercialmarketplacebe.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,9 +22,11 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "buyer_id")
+    @JsonIgnore
     private Buyer buyer;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
+    @JsonIgnore
     private Product product;
 }

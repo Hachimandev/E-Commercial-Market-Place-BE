@@ -1,5 +1,6 @@
 package com.fit.ecommercialmarketplacebe.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,5 +17,6 @@ public class Seller extends User {
     private double rating;
 
     @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Product> products;
 }

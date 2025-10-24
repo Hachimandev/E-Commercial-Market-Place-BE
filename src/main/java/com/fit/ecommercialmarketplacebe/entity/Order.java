@@ -1,6 +1,7 @@
 package com.fit.ecommercialmarketplacebe.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,12 +27,15 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "buyer_id")
+    @JsonIgnore
     private Buyer buyer;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Payment payment;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<OrderItem> items;
 }
 
