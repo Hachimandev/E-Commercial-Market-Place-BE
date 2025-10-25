@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = "*") // Cho phép gọi từ FE (React Native, React Web)
+@CrossOrigin(origins = "*")
 public class ProductController {
 
     private final ProductService productService;
