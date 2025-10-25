@@ -32,6 +32,19 @@ public class ECommercialMarketPlaceBeApplication {
                 userRepository.save(admin);
                 System.out.println("✅ Created default admin user");
             }
+
+            if (userRepository.findByUsername("buyer").isEmpty()) {
+                User buyer = new User();
+                buyer.setUsername("buyer");
+                buyer.setPassword(passwordEncoder.encode("buyer123"));
+                buyer.setRole(Role.BUYER);
+                buyer.setFullName("Nguyen Van Buyer");
+                buyer.setPhone("0911222333");
+                buyer.setAddress("Ha Noi");
+                userRepository.save(buyer);
+                System.out.println("✅ Created default buyer user");
+            }
+
         };
     }
 }

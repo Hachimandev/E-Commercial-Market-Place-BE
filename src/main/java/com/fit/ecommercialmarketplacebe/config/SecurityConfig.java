@@ -33,7 +33,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
                         .requestMatchers("/api/products/category/**").permitAll()
-                        .requestMatchers("/api/user/me").authenticated()
                         .requestMatchers("/api/seller/**").hasRole("SELLER")
                         .requestMatchers("/api/buyer/**").hasRole("BUYER")
                         .anyRequest().authenticated()
