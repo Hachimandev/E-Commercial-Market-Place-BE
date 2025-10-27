@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
+import org.springframework.http.HttpMethod;
 
 import java.util.List;
 
@@ -31,8 +31,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/products/**").permitAll()
-                        .requestMatchers("/api/products/category/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/cart/items").hasRole("BUYER")
+                        .requestMatchers(HttpMethod.PUT, "/api/cart/items/**").hasRole("BUYER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cart/items/**").hasRole("BUYER")
+                        .requestMatchers(HttpMethod.GET, "/api/cart").hasRole("BUYER")
+
+                        .requestMatchers(HttpMethod.POST, "/api/orders/checkout").hasRole("BUYER")
+                        .requestMatchers(HttpMethod.GET, "/api/payment/methods").hasRole("BUYER")
+
                         .requestMatchers("/api/seller/**").hasRole("SELLER")
                         .requestMatchers("/api/buyer/**").hasRole("BUYER")
                         .anyRequest().authenticated()

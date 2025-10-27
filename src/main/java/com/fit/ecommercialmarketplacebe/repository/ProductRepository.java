@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategoryNameIgnoreCase(String name);
-    Product findProductByProductId(Long id);
-
+    // findProductByProductId(Long id) đã được JpaRepository cung cấp (dưới tên findById)
+    // Chúng ta sẽ dùng findById(id)
 }
