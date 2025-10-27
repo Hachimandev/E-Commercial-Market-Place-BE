@@ -23,6 +23,8 @@ public class Product {
     private String imageURL;
     private double rating;
 
+    private String offer;
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     @JsonIgnore
@@ -36,4 +38,24 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Review> reviews;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ProductImage> images;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ProductFeature> features;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ProductOption> options;
+
+    @ManyToMany
+    @JoinTable(
+            name = "relevant_products",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "relevant_product_id"))
+    @JsonIgnore
+    private List<Product> relevantProducts;
 }

@@ -18,6 +18,8 @@ public class User {
     private String fullName;
     private String phone;
     private String address;
+
+    private String avatarURL;
     @Enumerated(EnumType.STRING)
     private Role role;
 }
