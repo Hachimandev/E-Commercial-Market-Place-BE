@@ -11,16 +11,16 @@ INSERT INTO category (name, description) VALUES
 -- USERS (Buyers & Sellers)
 -- ========================
 -- Seller (User ID 1)
-INSERT INTO users (username, password, full_name, phone, address, avatarURL, role) VALUES
+INSERT INTO users (username, password, full_name, phone, address, avatarurl, role) VALUES
 ('techseller', 'hashed_pass_123', 'TechZone Admin', '0900000001', '123 Tech St, HCMC', 'https://randomuser.me/api/portraits/men/1.jpg', 'SELLER');
 -- Buyer (User ID 2)
-INSERT INTO users (username, password, full_name, phone, address, avatarURL, role) VALUES
+INSERT INTO users (username, password, full_name, phone, address, avatarurl, role) VALUES
 ('janedoe', 'hashed_pass_123', 'Jane Doe', '0900000002', '456 Buyer Ave, HCMC', 'https://randomuser.me/api/portraits/women/44.jpg', 'BUYER');
 -- Buyer (User ID 3) - Dùng cho review
-INSERT INTO users (username, password, full_name, phone, address, avatarURL, role) VALUES
+INSERT INTO users (username, password, full_name, phone, address, avatarurl, role) VALUES
 ('jevonray', 'hashed_pass_123', 'Jevon Raynor', '0900000003', '789 Review St, HCMC', 'https://randomuser.me/api/portraits/men/32.jpg', 'BUYER');
 -- Buyer (User ID 4) - Dùng cho review
-INSERT INTO users (username, password, full_name, phone, address, avatarURL, role) VALUES
+INSERT INTO users (username, password, full_name, phone, address, avatarurl, role) VALUES
 ('jasond', 'hashed_pass_123', 'Jason D.', '0900000004', '101 Comment Rd, HCMC', 'https://randomuser.me/api/portraits/men/33.jpg', 'BUYER');
 
 

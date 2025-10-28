@@ -29,7 +29,7 @@ public class AuthController {
                 .password(passwordEncoder.encode(req.getPassword()))
                 .phone(req.getPhone())
                 .address(req.getAddress())
-                .role(Role.valueOf(req.getRole()))
+                .role(Role.BUYER)
                 .build();
         userRepo.save(u);
         return "Đăng ký thành công";
@@ -51,5 +51,7 @@ public class AuthController {
                 expiresAt
                 );
     }
+
+
 }
 
