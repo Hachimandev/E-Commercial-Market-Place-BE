@@ -5,13 +5,18 @@ import com.fit.ecommercialmarketplacebe.config.JwtService;
 import com.fit.ecommercialmarketplacebe.dto.AuthRequest;
 import com.fit.ecommercialmarketplacebe.dto.AuthResponse;
 import com.fit.ecommercialmarketplacebe.dto.RegisterRequest;
+import com.fit.ecommercialmarketplacebe.entity.Buyer;
+import com.fit.ecommercialmarketplacebe.entity.Cart;
 import com.fit.ecommercialmarketplacebe.entity.Role;
 import com.fit.ecommercialmarketplacebe.entity.User;
 import com.fit.ecommercialmarketplacebe.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,17 +27,25 @@ public class AuthController {
     @Autowired private JwtService jwtService;
 
     @PostMapping("/register")
-    public String register(@RequestBody RegisterRequest req) {
-        if (userRepo.existsByUsername(req.getName())) return "Tên đăng nhập đã tồn tại";
-        User u = User.builder()
-                .username(req.getName())
-                .password(passwordEncoder.encode(req.getPassword()))
-                .phone(req.getPhone())
-                .address(req.getAddress())
-                .role(Role.BUYER)
-                .build();
-        userRepo.save(u);
-        return "Đăng ký thành công";
+    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
+        if (userRepo.existsByUsername(req.getName()))
+            return ResponseEntity.badRequest().body(Map.of("error", "Tên đăng nhập đã tồn tại"));
+
+        Buyer buyer = new Buyer();
+        buyer.setUsername(req.getName());
+        buyer.setPassword(passwordEncoder.encode(req.getPassword()));
+        buyer.setFullName(req.getFullName());
+        buyer.setPhone(req.getPhone());
+        buyer.setAddress(req.getAddress());
+        buyer.setRole(Role.BUYER);
+
+        Cart cart = new Cart();
+        cart.setBuyer(buyer);
+        buyer.setCart(cart);
+
+        userRepo.save(buyer);
+
+        return ResponseEntity.ok(buyer);
     }
 
     @PostMapping("/login")

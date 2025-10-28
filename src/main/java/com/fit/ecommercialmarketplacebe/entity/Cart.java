@@ -1,5 +1,6 @@
 package com.fit.ecommercialmarketplacebe.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,7 +21,7 @@ public class Cart {
 
     @OneToOne
     @JoinColumn(name = "buyer_id")
-    @JsonIgnore
+    @JsonBackReference
     private Buyer buyer;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
