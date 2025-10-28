@@ -1,6 +1,7 @@
 package com.fit.ecommercialmarketplacebe.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,6 +13,6 @@ import lombok.*;
 public class Buyer extends User {
 
     @OneToOne(mappedBy = "buyer", cascade = CascadeType.ALL)
-    @JsonIgnore
+    @JsonManagedReference
     private Cart cart;
 }
