@@ -110,7 +110,7 @@ public class OrderService {
                         .build())
                 .collect(Collectors.toList());
 
-        // Giả sử (tính toán lại cho chính xác)
+
         double subtotal = order.getTotalAmount() / 1.1;
         double tax = order.getTotalAmount() - subtotal;
 
@@ -124,4 +124,43 @@ public class OrderService {
                 .status("Success")
                 .build();
     }
+
+
+    public List<Order> getAllOrders(){
+        return orderRepository.findAll();
+    }
+
+
+    public Order getOrderById(Long orderId) {
+        Order order = orderRepository.findOrderByOrderId(orderId);
+        if (order == null) {
+            throw new EntityNotFoundException("Không tìm thấy đơn hàng với id: " + orderId);
+        }
+
+
+        order.getItems().size();
+
+
+        for (OrderItem item : order.getItems()) {
+            if (item.getProduct() != null) {
+                item.getProduct().getName();
+            }
+        }
+
+        return order;
+    }
+
+    public void deleteOrderById(Long orderId) {
+        Order order = orderRepository.findOrderByOrderId(orderId);
+        if (order == null) {
+            throw new EntityNotFoundException("Order không tồn tại");
+        }
+        orderRepository.delete(order);
+    }
+
+    public List<Order> getAllOrdersByBuyerUserId(Integer buyerUserId) {
+        return orderRepository.findOrderByBuyerUserId(buyerUserId);
+    }
+
+
 }

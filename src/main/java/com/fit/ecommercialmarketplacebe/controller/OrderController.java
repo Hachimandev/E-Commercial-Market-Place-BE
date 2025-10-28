@@ -3,16 +3,18 @@ package com.fit.ecommercialmarketplacebe.controller;
 import com.fit.ecommercialmarketplacebe.dto.request.CheckoutRequestDto;
 import com.fit.ecommercialmarketplacebe.dto.response.OrderSuccessDto;
 import com.fit.ecommercialmarketplacebe.entity.Buyer;
+import com.fit.ecommercialmarketplacebe.entity.Order;
 import com.fit.ecommercialmarketplacebe.service.OrderService;
 import com.fit.ecommercialmarketplacebe.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -38,4 +40,32 @@ public class OrderController {
         OrderSuccessDto orderResult = orderService.createOrderFromCart(buyer, checkoutRequestDto);
         return ResponseEntity.ok(orderResult);
     }
+
+    @GetMapping
+    public ResponseEntity<List<Order>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+        Order order = orderService.getOrderById(id);
+        return ResponseEntity.ok(order);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrderById(@PathVariable Long id) {
+        orderService.deleteOrderById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/buyer")
+    public ResponseEntity<List<Order>> getOrdersForBuyer(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        var buyer = userService.getBuyerFromUserDetails(userDetails);
+        return ResponseEntity.ok(orderService.getAllOrdersByBuyerUserId(buyer.getUserId()));
+    }
+
+
 }
