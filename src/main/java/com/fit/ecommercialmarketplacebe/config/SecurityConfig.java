@@ -44,13 +44,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/cart").hasRole("BUYER")
 
                         .requestMatchers(HttpMethod.POST, "/api/orders/checkout").hasRole("BUYER")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/history").hasRole("BUYER")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/{orderId}").hasRole("BUYER")
 
                         .requestMatchers(HttpMethod.GET, "/api/payment/methods").hasRole("BUYER")
 
-                        .requestMatchers(HttpMethod.GET, "/api/orders").hasRole("SELLER")
-                        .requestMatchers(HttpMethod.GET, "/api/orders/buyer").hasRole("BUYER")
-                        .requestMatchers(HttpMethod.GET, "/api/orders/**").hasAnyRole("BUYER", "SELLER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/orders/**").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/admin").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/admin/{id}").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/orders/admin/{id}").hasRole("SELLER")
 
                         .requestMatchers("/api/seller/**").hasRole("SELLER")
                         .requestMatchers("/api/buyer/**").hasRole("BUYER")
