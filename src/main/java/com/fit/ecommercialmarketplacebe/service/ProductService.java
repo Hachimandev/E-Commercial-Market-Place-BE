@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fit.ecommercialmarketplacebe.dto.response.*;
 import com.fit.ecommercialmarketplacebe.entity.Product;
 import com.fit.ecommercialmarketplacebe.entity.ProductOption;
+import com.fit.ecommercialmarketplacebe.entity.Seller;
 import com.fit.ecommercialmarketplacebe.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // <-- Import quan trọng
 
@@ -15,6 +17,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
+
+    @Autowired
     private final ProductRepository productRepository;
     private final ObjectMapper objectMapper; // Dùng để đọc JSON metadata của màu sắc
 
@@ -38,6 +42,35 @@ public class ProductService {
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
     }
 
+    public Product addProduct(Product product) {
+        return productRepository.save(product);
+    }
+
+    public Product updateProduct(Long id, Product productDetails) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + id));
+
+        product.setName(productDetails.getName());
+        product.setDescription(productDetails.getDescription());
+        product.setPrice(productDetails.getPrice());
+        product.setStock(productDetails.getStock());
+        product.setImageURL(productDetails.getImageURL());
+        product.setRating(productDetails.getRating());
+        product.setOffer(productDetails.getOffer());
+        product.setCategory(productDetails.getCategory());
+
+        return productRepository.save(product);
+    }
+
+    public void deleteProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + id));
+        productRepository.delete(product);
+    }
+
+    public List<Product> getProductsBySeller(Seller seller) {
+        return productRepository.findBySeller(seller);
+    }
     // ==========================================================
     // ✅ PHƯƠNG THỨC MỚI CHO ProductDetailGeneralScreen
     // ==========================================================

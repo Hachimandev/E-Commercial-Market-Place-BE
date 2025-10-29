@@ -31,18 +31,27 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/products/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/products/seller").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("SELLER")
+
                         .requestMatchers(HttpMethod.POST, "/api/cart/items").hasRole("BUYER")
                         .requestMatchers(HttpMethod.PUT, "/api/cart/items/**").hasRole("BUYER")
                         .requestMatchers(HttpMethod.DELETE, "/api/cart/items/**").hasRole("BUYER")
                         .requestMatchers(HttpMethod.GET, "/api/cart").hasRole("BUYER")
+
                         .requestMatchers(HttpMethod.POST, "/api/orders/checkout").hasRole("BUYER")
+
                         .requestMatchers(HttpMethod.GET, "/api/payment/methods").hasRole("BUYER")
 
                         .requestMatchers(HttpMethod.GET, "/api/orders").hasRole("SELLER")
                         .requestMatchers(HttpMethod.GET, "/api/orders/buyer").hasRole("BUYER")
                         .requestMatchers(HttpMethod.GET, "/api/orders/**").hasAnyRole("BUYER", "SELLER")
                         .requestMatchers(HttpMethod.DELETE, "/api/orders/**").hasRole("SELLER")
+
                         .requestMatchers("/api/seller/**").hasRole("SELLER")
                         .requestMatchers("/api/buyer/**").hasRole("BUYER")
                         .anyRequest().authenticated()
