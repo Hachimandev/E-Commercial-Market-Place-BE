@@ -46,13 +46,6 @@ public class ProductController {
     public ResponseEntity<Product> updateProduct(@PathVariable Long id,
                                                  @RequestBody Product productDetails,
                                                  @AuthenticationPrincipal Seller seller) {
-        Product existing = productService.getProductById(id);
-
-
-        if (existing.getSeller() == null ||
-                !existing.getSeller().getUserId().equals(seller.getUserId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
 
         productDetails.setSeller(seller);
         Product updated = productService.updateProduct(id, productDetails);
@@ -60,13 +53,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id,
-                                              @AuthenticationPrincipal Seller seller) {
-        Product product = productService.getProductById(id);
-
-        if (!product.getSeller().getUserId().equals(seller.getUserId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
