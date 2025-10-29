@@ -20,40 +20,37 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
-    private final CartService cartService; // Dùng lại service giỏ hàng
+    private final CartService cartService;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final PaymentMethodRepository paymentMethodRepository;
-    // ... các repo khác
 
     // POST /api/orders/checkout
     @Transactional
     public OrderSuccessDto createOrderFromCart(Buyer buyer, CheckoutRequestDto dto) {
         Cart cart = cartService.getOrCreateCart(buyer);
         if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+            throw new RuntimeException("Giỏ hàng trống");
         }
 
         PaymentMethod paymentMethod = paymentMethodRepository.findById(dto.getPaymentMethodId())
                 .filter(pm -> pm.getBuyer().getUserId().equals(buyer.getUserId()))
-                .orElseThrow(() -> new EntityNotFoundException("Payment method not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Payment method không tìm thấy"));
 
-        // 1. Tạo Order
         Order order = new Order();
         order.setBuyer(buyer);
         order.setOrderDate(new Date());
-        order.setTotalAmount(cart.getTotalPrice()); // Tạm thời lấy tổng tiền từ cart
-        order.setStatus(OrderStatus.PAID); // Giả sử thanh toán thành công ngay
+        order.setTotalAmount(cart.getTotalPrice());
+        order.setStatus(OrderStatus.PENDING);
         Order savedOrder = orderRepository.save(order);
 
-        // 2. Chuyển CartItems thành OrderItems
         List<OrderItem> orderItems = cart.getItems().stream()
                 .map(cartItem -> {
                     OrderItem orderItem = new OrderItem();
                     orderItem.setOrder(savedOrder);
                     orderItem.setProduct(cartItem.getProduct());
                     orderItem.setQuantity(cartItem.getQuantity());
-                    orderItem.setPrice(cartItem.getProduct().getPrice()); // Lấy giá gốc
+                    orderItem.setPrice(cartItem.getProduct().getPrice());
 
                     // TODO: Giảm stock của sản phẩm
                     // Product product = cartItem.getProduct();
@@ -66,25 +63,21 @@ public class OrderService {
         orderItemRepository.saveAll(orderItems);
         savedOrder.setItems(orderItems);
 
-        // 3. Tạo Payment
         Payment payment = new Payment();
         payment.setOrder(savedOrder);
         payment.setAmount(cart.getTotalPrice());
         payment.setDate(new Date());
-        payment.setMethod(paymentMethod.getProvider()); // "Visa", "Paypal"
+        payment.setMethod(paymentMethod.getProvider());
         payment.setStatus(PaymentStatus.COMPLETED);
         paymentRepository.save(payment);
 
-        // 4. XÓA CartItems khỏi giỏ hàng
         cartItemRepository.deleteAll(cart.getItems());
         cart.getItems().clear();
-        cartService.recalculateCartTotal(cart); // Sẽ set total = 0
+        cartService.recalculateCartTotal(cart);
 
-        // 5. Trả về DTO cho SuccessScreen
         return mapOrderToSuccessDto(savedOrder, paymentMethod);
     }
 
-    // Helper: Map PaymentMethod
     private PaymentMethodDto mapPaymentMethodToDto(PaymentMethod pm) {
         return PaymentMethodDto.builder()
                 .id(pm.getId().toString())
@@ -96,7 +89,6 @@ public class OrderService {
                 .build();
     }
 
-    // Helper: Map Order -> SuccessDTO
     private OrderSuccessDto mapOrderToSuccessDto(Order order, PaymentMethod paymentMethod) {
         List<CartItemDto> itemDtos = order.getItems().stream()
                 .map(item -> CartItemDto.builder()
@@ -125,6 +117,81 @@ public class OrderService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderHistoryDto> getOrderHistory(Buyer buyer) {
+        List<Order> orders = orderRepository.findByBuyerOrderByOrderDateDesc(buyer);
+
+        return orders.stream()
+                .map(this::mapOrderToHistoryDto)
+                .collect(Collectors.toList());
+    }
+
+    private OrderHistoryDto mapOrderToHistoryDto(Order order) {
+        if (order.getItems() == null) {
+            throw new EntityNotFoundException("Danh sách hóa đơn rỗng!");
+        }
+
+        List<OrderItemDto> itemDtos = order.getItems().stream()
+                .map(item -> OrderItemDto.builder()
+                        .productId(item.getProduct().getProductId().toString())
+                        .productName(item.getProduct().getName())
+                        .productImageURL(item.getProduct().getImageURL())
+                        .quantity(item.getQuantity())
+                        .price(item.getPrice())
+                        .build())
+                .collect(Collectors.toList());
+        int totalItems = order.getItems().stream()
+                .mapToInt(OrderItem::getQuantity)
+                .sum();
+        return OrderHistoryDto.builder()
+                .orderId(order.getOrderId().toString())
+                .orderDate(order.getOrderDate())
+                .totalAmount(order.getTotalAmount())
+                .status(order.getStatus())
+                .itemCount(totalItems)
+                .items(itemDtos)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDetailDto getOrderDetail(Long orderId, Buyer buyer) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("Hóa đơn không tìm thấy với mã: " + orderId));
+        if (!order.getBuyer().getUserId().equals(buyer.getUserId())) {
+            throw new EntityNotFoundException("Không tim thấy hóa đơn cho user");
+        }
+
+        return mapOrderToDetailDto(order);
+    }
+
+    private OrderDetailDto mapOrderToDetailDto(Order order) {
+        List<OrderItemDto> itemDtos = order.getItems().stream()
+                .map(item -> OrderItemDto.builder()
+                        .productId(item.getProduct().getProductId().toString())
+                        .productName(item.getProduct().getName())
+                        .productImageURL(item.getProduct().getImageURL())
+                        .quantity(item.getQuantity())
+                        .price(item.getPrice())
+                        .build())
+                .collect(Collectors.toList());
+
+        String paymentMethodDetail = order.getPayment() != null ? order.getPayment().getMethod() : "N/A";
+        String paymentStatusDetail = order.getPayment() != null ? order.getPayment().getStatus().name() : "N/A";
+
+
+        return OrderDetailDto.builder()
+                .orderId(order.getOrderId().toString())
+                .orderDate(order.getOrderDate())
+                .totalAmount(order.getTotalAmount())
+                .status(order.getStatus())
+                .items(itemDtos)
+                .buyerName(order.getBuyer().getFullName())
+                .shippingAddress(order.getBuyer().getAddress())
+                .buyerPhone(order.getBuyer().getPhone())
+                .paymentMethod(paymentMethodDetail)
+                .paymentStatus(paymentStatusDetail)
+                .build();
+    }
 
     public List<Order> getAllOrders(){
         return orderRepository.findAll();

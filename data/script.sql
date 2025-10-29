@@ -46,40 +46,7 @@ VALUES
 -- ========================
 -- CART ITEMS
 -- ========================
-INSERT INTO cart_item (quantity, subtotal, cart_id, product_id)
-VALUES
-    (1, 1200.0, 1, 1),
-    (2, 90.0, 1, 3),
-    (3, 10.5, 1, 4);
 
--- ========================
--- ORDERS
--- ========================
-INSERT INTO orders (order_date, total_amount, status, buyer_id)
-VALUES
-    (NOW(), 1290.0, 'PENDING', 2),
-    (NOW(), 10.5, 'DELIVERED', 2),
-    (NOW(), 107.5, 'SHIPPED', 2);
-
--- ========================
--- ORDER ITEMS
--- ========================
-INSERT INTO order_item (quantity, price, order_id, product_id)
-VALUES
-    (1, 1200.0, 1, 1),
-    (2, 45.0, 1, 3),
-    (3, 3.5, 2, 4),
-    (1, 20.0, 3, 5),
-    (1, 65.0, 3, 6),
-    (1, 22.5, 3, 8);
-
--- ========================
--- PAYMENTS
--- ========================
-INSERT INTO payment (method, amount, date, status, order_id)
-VALUES
-    ('CREDIT_CARD', 1290.0, NOW(), 'PENDING', 1),
-    ('CASH_ON_DELIVERY', 10.5, NOW(), 'COMPLETED', 2)
 -- ========================
 -- PRODUCTS
 -- ========================
@@ -113,10 +80,74 @@ VALUES (7, 'Sony WH-1000XM4', 'Tai nghe chống ồn chủ động cao cấp', 3
 INSERT INTO product (product_id, name, description, price, stock, imageURL, rating, category_id, seller_id, offer)
 VALUES (8, 'AirPods Max', 'Tai nghe Apple cao cấp, âm thanh không gian', 549.0, 15, 'headphone2.png', 4.8, 1, 1, NULL);
 
+INSERT INTO cart_item (quantity, subtotal, cart_id, product_id)
+VALUES
+    (1, 1200.0, 1, 1),
+    (2, 90.0, 1, 3),
+    (3, 10.5, 1, 4);
 
 -- ========================
--- PRODUCT_IMAGE (Ảnh phụ cho sản phẩm biến thể)
--- (Sử dụng lại tên file ảnh local)
+-- ORDERS
+-- ========================
+INSERT INTO orders (order_date, total_amount, status, buyer_id)
+VALUES
+    (NOW(), 1290.0, 'PENDING', 2),
+    (NOW(), 10.5, 'DELIVERED', 2),
+    (NOW(), 107.5, 'SHIPPING', 2),
+    (NOW() - INTERVAL 1 DAY, 88.5, 'SHIPPING', 2),
+    (NOW() - INTERVAL 2 DAY, 45.0, 'CANCELLED', 2),
+    (NOW(), 350.0, 'PENDING', 3);
+
+-- ========================
+-- ORDER ITEMS
+-- ========================
+INSERT INTO order_item (quantity, price, order_id, product_id)
+VALUES
+    (1, 1200.0, 1, 1),
+    (2, 45.0, 1, 3),
+    (3, 3.5, 2, 4),
+    (1, 20.0, 3, 5),
+    (1, 65.0, 3, 6),
+    (1, 22.5, 3, 8);
+INSERT INTO order_item (quantity, price, order_id, product_id)
+VALUES
+    (1, 85.0, 4, 6), 
+    (1, 3.5, 4, 4); 
+
+-- Items cho Order 5 (CANCELLED)
+INSERT INTO order_item (quantity, price, order_id, product_id)
+VALUES
+    (1, 45.0, 5, 3); 
+
+-- Items cho Order 6 (PENDING - của buyer 3)
+INSERT INTO order_item (quantity, price, order_id, product_id)
+VALUES
+    (1, 350.0, 6, 7);
+
+-- ========================
+-- PAYMENTS
+-- ========================
+INSERT INTO payment (method, amount, date, status, order_id)
+VALUES
+    ('CREDIT_CARD', 1290.0, NOW(), 'PENDING', 1),
+    ('CASH_ON_DELIVERY', 10.5, NOW(), 'COMPLETED', 2)
+INSERT INTO payment (method, amount, date, status, order_id)
+VALUES ('CREDIT_CARD', 107.5, NOW(), 'COMPLETED', 3);
+
+-- Payment cho Order 4
+INSERT INTO payment (method, amount, date, status, order_id)
+VALUES ('CASH_ON_DELIVERY', 88.5, NOW() - INTERVAL 1 DAY, 'COMPLETED', 4);
+
+-- Payment cho Order 5 (CANCELLED - có thể là PENDING hoặc FAILED tùy logic hủy)
+INSERT INTO payment (method, amount, date, status, order_id)
+VALUES ('CREDIT_CARD', 45.0, NOW() - INTERVAL 2 DAY, 'FAILED', 5); -- Giả sử thanh toán lỗi
+
+-- Payment cho Order 6 (PENDING - của buyer 3)
+INSERT INTO payment (method, amount, date, status, order_id)
+VALUES ('CREDIT_CARD', 350.0, NOW(), 'PENDING', 6);
+
+-- ========================
+-- PRODUCT_IMAGE
 -- ========================
 
 -- Ảnh phụ cho Lipstick (ID 3)
@@ -251,6 +282,13 @@ VALUES
 -- ========================
 -- PAYMENT_METHOD (Thẻ/Ví đã lưu của Buyer)
 -- ========================
+INSERT INTO payment_method (type, provider, last4, details, icon_name, buyer_id)
+VALUES
+    ('card', 'Visa', '2334', 'Jane Doe', 'visa-logo.png', 2),
+    ('card', 'Mastercard', '3774', 'Jane Doe', 'mastercard-logo.png', 2),
+    ('paypal', 'PayPal', 'N/A', 'jane.doe@gmail.com', 'paypal-logo.png', 2);
 
--- Giả sử Buyer ID 2 (Jane Doe) có 3 thẻ
-cart_itemcart_item
+-- Giả sử Buyer ID 3 (Jevon Raynor) có 1 thẻ
+INSERT INTO payment_method (type, provider, last4, details, icon_name, buyer_id)
+VALUES
+    ('card', 'Visa', '5566', 'Jevon Raynor', 'visa-logo.png', 3);

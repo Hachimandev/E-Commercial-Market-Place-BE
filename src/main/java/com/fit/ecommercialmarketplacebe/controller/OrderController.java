@@ -1,6 +1,8 @@
 package com.fit.ecommercialmarketplacebe.controller;
 
 import com.fit.ecommercialmarketplacebe.dto.request.CheckoutRequestDto;
+import com.fit.ecommercialmarketplacebe.dto.response.OrderDetailDto;
+import com.fit.ecommercialmarketplacebe.dto.response.OrderHistoryDto;
 import com.fit.ecommercialmarketplacebe.dto.response.OrderSuccessDto;
 import com.fit.ecommercialmarketplacebe.entity.Buyer;
 import com.fit.ecommercialmarketplacebe.entity.Order;
@@ -41,31 +43,50 @@ public class OrderController {
         return ResponseEntity.ok(orderResult);
     }
 
-    @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
+    @GetMapping("/history")
+    public ResponseEntity<List<OrderHistoryDto>> getOrderHistory(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        Buyer buyer = userService.getBuyerFromUserDetails(userDetails);
+        List<OrderHistoryDto> history = orderService.getOrderHistory(buyer);
+        return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderDetailDto> getOrderDetail(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long orderId
+    ) {
+        Buyer buyer = userService.getBuyerFromUserDetails(userDetails);
+        OrderDetailDto orderDetail = orderService.getOrderDetail(orderId, buyer);
+        return ResponseEntity.ok(orderDetail);
+    }
+
+    @GetMapping("/admin")
+    public ResponseEntity<List<Order>> getAllOrdersForAdmin() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
 
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+    @GetMapping("admin/{id}")
+    public ResponseEntity<Order> getOrderByIdForAdmin(@PathVariable Long id) {
         Order order = orderService.getOrderById(id);
         return ResponseEntity.ok(order);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrderById(@PathVariable Long id) {
+    @DeleteMapping("admin/{id}")
+    public ResponseEntity<Void> deleteOrderByIdForAdmin(@PathVariable Long id) {
         orderService.deleteOrderById(id);
         return ResponseEntity.noContent().build();
     }
 
+//    @GetMapping("/buyer")
+//    public ResponseEntity<List<Order>> getOrdersForBuyer(
+//            @AuthenticationPrincipal UserDetails userDetails) {
+//        var buyer = userService.getBuyerFromUserDetails(userDetails);
+//        return ResponseEntity.ok(orderService.getAllOrdersByBuyerUserId(buyer.getUserId()));
+//    }
 
-    @GetMapping("/buyer")
-    public ResponseEntity<List<Order>> getOrdersForBuyer(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        var buyer = userService.getBuyerFromUserDetails(userDetails);
-        return ResponseEntity.ok(orderService.getAllOrdersByBuyerUserId(buyer.getUserId()));
-    }
 
 
 }
