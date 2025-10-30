@@ -2,14 +2,21 @@ package com.fit.ecommercialmarketplacebe.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fit.ecommercialmarketplacebe.dto.response.*;
+import com.fit.ecommercialmarketplacebe.entity.OrderStatus;
 import com.fit.ecommercialmarketplacebe.entity.Product;
 import com.fit.ecommercialmarketplacebe.entity.ProductOption;
 import com.fit.ecommercialmarketplacebe.entity.Seller;
 import com.fit.ecommercialmarketplacebe.repository.ProductRepository;
+import com.fit.ecommercialmarketplacebe.specification.ProductSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // <-- Import quan trọng
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -20,9 +27,8 @@ public class ProductService {
 
     @Autowired
     private final ProductRepository productRepository;
-    private final ObjectMapper objectMapper; // Dùng để đọc JSON metadata của màu sắc
+    private final ObjectMapper objectMapper;
 
-    // Cập nhật constructor
     public ProductService(ProductRepository productRepository, ObjectMapper objectMapper) {
         this.productRepository = productRepository;
         this.objectMapper = objectMapper;
@@ -36,7 +42,6 @@ public class ProductService {
         return productRepository.findByCategoryNameIgnoreCase(name);
     }
 
-    // Phương thức cũ (vẫn giữ lại nếu cần)
     public Product getProductById(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
@@ -71,10 +76,8 @@ public class ProductService {
     public List<Product> getProductsBySeller(Seller seller) {
         return productRepository.findBySeller(seller);
     }
-    // ==========================================================
-    // ✅ PHƯƠNG THỨC MỚI CHO ProductDetailGeneralScreen
-    // ==========================================================
-    @Transactional(readOnly = true) // Cần thiết để lazy-loading
+
+    @Transactional(readOnly = true)
     public ProductDetailGeneralDto getProductGeneralDetails(Long id) {
         Product product = getProductById(id); // Gọi lại hàm trên để lấy product
 
@@ -121,10 +124,7 @@ public class ProductService {
                 .build();
     }
 
-    // ==========================================================
-    // ✅ PHƯƠNG THỨC MỚI CHO ProductDetailVariantScreen
-    // ==========================================================
-    @Transactional(readOnly = true) // Cần thiết để lazy-loading
+    @Transactional(readOnly = true)
     public ProductDetailVariantDto getProductVariantDetails(Long id) {
         Product product = getProductById(id);
 
@@ -132,7 +132,6 @@ public class ProductService {
                 ? product.getDescription().substring(0, 50) + "..."
                 : product.getDescription();
 
-        // Lấy ảnh phụ
         List<ProductImageDto> imageDtos = product.getImages().stream()
                 .map(img -> ProductImageDto.builder()
                         .id(img.getId().toString())
@@ -143,7 +142,6 @@ public class ProductService {
         List<ProductColorDto> colorDtos = Collections.emptyList();
         List<String> sizeList = Collections.emptyList();
 
-        // Xử lý Options
         if (product.getOptions() != null) {
             for (ProductOption option : product.getOptions()) {
                 if ("Color".equalsIgnoreCase(option.getName())) {
@@ -173,5 +171,28 @@ public class ProductService {
                 .colors(colorDtos)
                 .sizes(sizeList)
                 .build();
+    }
+
+    public List<Product> getRecommendedProducts() {
+        Pageable topTen = PageRequest.of(0, 10);
+        return productRepository.findBestSellingProducts(OrderStatus.DELIVERED, topTen);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Product> searchProducts(
+            String query, Double minPrice, Double maxPrice,
+            Double minRating, String categoryName, String featureText,
+            int page, int size, String sortBy, String sortDir
+    ) {
+        Specification<Product> spec = ProductSpecification.hasNameOrDescription(query);
+        spec = spec.and(ProductSpecification.hasPriceInRange(minPrice, maxPrice));
+        spec = spec.and(ProductSpecification.hasMinRating(minRating));
+        spec = spec.and(ProductSpecification.hasCategory(categoryName));
+        spec = spec.and(ProductSpecification.hasFeature(featureText));
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDir), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return productRepository.findAll(spec, pageable);
     }
 }

@@ -6,6 +6,7 @@ import com.fit.ecommercialmarketplacebe.dto.response.ProductDetailVariantDto;
 import com.fit.ecommercialmarketplacebe.entity.Product;
 import com.fit.ecommercialmarketplacebe.entity.Seller;
 import com.fit.ecommercialmarketplacebe.service.ProductService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -79,5 +80,34 @@ public class ProductController {
     public ResponseEntity<ProductDetailVariantDto> getProductVariant(@PathVariable Long id) {
         ProductDetailVariantDto productDto = productService.getProductVariantDetails(id);
         return ResponseEntity.ok(productDto);
+    }
+
+    @GetMapping("/recommended")
+    public ResponseEntity<List<Product>> getRecommendedProducts() {
+        List<Product> products = productService.getRecommendedProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<Product>> searchProducts(
+            @RequestParam(required = false) String query,
+
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) String featureText,
+
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "productId") String sortBy,
+            @RequestParam(defaultValue = "ASC") String sortDir
+    ) {
+
+        Page<Product> products = productService.searchProducts(
+                query, minPrice, maxPrice, minRating, categoryName, featureText,
+                page, size, sortBy, sortDir
+        );
+        return ResponseEntity.ok(products);
     }
 }
