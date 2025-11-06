@@ -1,6 +1,7 @@
 package com.fit.ecommercialmarketplacebe.config;
 
 import com.fit.ecommercialmarketplacebe.service.UserDetailsServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpMethod;
 import java.util.List;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
     @Autowired private JwtAuthenticationFilter jwtAuthFilter;
     @Autowired private UserDetailsServiceImpl userDetailsService;
@@ -29,34 +31,37 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 .authorizeHttpRequests(auth -> auth
+                        // 1. PUBLIC
                         .requestMatchers("/api/auth/**").permitAll()
-
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/products/seller").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/products/**").hasRole("SELLER")
-                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.GET, "/api/files/images/**").permitAll()
+                        .requestMatchers("/images/**").permitAll()
+
+                        // 2. SELLER (Admin)
+                        .requestMatchers("/api/orders/admin/**").hasRole("SELLER") // Nắm bắt /admin, /admin/{id}
+                        .requestMatchers("/api/products/seller").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.POST, "/api/products").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.PUT, "/api/products/**").hasRole("SELLER") // Đặt PUT/DELETE chung chung ở dưới
                         .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasRole("SELLER")
+                        .requestMatchers(HttpMethod.POST, "/api/files/upload").hasRole("SELLER")
+                        .requestMatchers("/api/seller/**").hasRole("SELLER")
+                        .requestMatchers("/api/analytics/**").hasRole("SELLER")
+                        .requestMatchers("/api/users/**").hasRole("SELLER")
 
-                        .requestMatchers(HttpMethod.POST, "/api/cart/items").hasRole("BUYER")
-                        .requestMatchers(HttpMethod.PUT, "/api/cart/items/**").hasRole("BUYER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/cart/items/**").hasRole("BUYER")
-                        .requestMatchers(HttpMethod.GET, "/api/cart").hasRole("BUYER")
-
+                        // 3. BUYER
                         .requestMatchers(HttpMethod.POST, "/api/orders/checkout").hasRole("BUYER")
                         .requestMatchers(HttpMethod.GET, "/api/orders/history").hasRole("BUYER")
+                        .requestMatchers("/api/cart/**").hasRole("BUYER")
+                        .requestMatchers(HttpMethod.GET, "/api/payment/methods").hasRole("BUYER")
+                        .requestMatchers("/api/buyer/**").hasRole("BUYER")
+
                         .requestMatchers(HttpMethod.GET, "/api/orders/{orderId}").hasRole("BUYER")
 
-                        .requestMatchers(HttpMethod.GET, "/api/payment/methods").hasRole("BUYER")
-
-                        .requestMatchers(HttpMethod.GET, "/api/orders/admin").hasRole("SELLER")
-                        .requestMatchers(HttpMethod.GET, "/api/orders/admin/{id}").hasRole("SELLER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/orders/admin/{id}").hasRole("SELLER")
-
-                        .requestMatchers("/api/seller/**").hasRole("SELLER")
-                        .requestMatchers("/api/buyer/**").hasRole("BUYER")
                         .anyRequest().authenticated()
                 )
+
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
