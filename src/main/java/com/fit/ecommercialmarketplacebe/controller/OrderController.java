@@ -26,11 +26,6 @@ public class OrderController {
     private final OrderService orderService;
     private final UserService userService;
 
-    /**
-     * Endpoint xử lý việc thanh toán giỏ hàng và tạo đơn hàng.
-     * Được gọi khi người dùng nhấn "Pay Now".
-     * Yêu cầu người dùng phải đăng nhập với vai trò BUYER (được kiểm tra bởi SecurityConfig).
-     */
     @PostMapping("/checkout")
     public ResponseEntity<OrderSuccessDto> checkout(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -62,31 +57,22 @@ public class OrderController {
         return ResponseEntity.ok(orderDetail);
     }
 
-    @GetMapping("/admin")
+    @GetMapping()
     public ResponseEntity<List<Order>> getAllOrdersForAdmin() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
 
 
-    @GetMapping("admin/{id}")
+    @GetMapping("/admin/{id}")
     public ResponseEntity<Order> getOrderByIdForAdmin(@PathVariable Long id) {
         Order order = orderService.getOrderById(id);
         return ResponseEntity.ok(order);
     }
 
-    @DeleteMapping("admin/{id}")
+    @DeleteMapping("/admin/{id}")
     public ResponseEntity<Void> deleteOrderByIdForAdmin(@PathVariable Long id) {
         orderService.deleteOrderById(id);
         return ResponseEntity.noContent().build();
     }
-
-//    @GetMapping("/buyer")
-//    public ResponseEntity<List<Order>> getOrdersForBuyer(
-//            @AuthenticationPrincipal UserDetails userDetails) {
-//        var buyer = userService.getBuyerFromUserDetails(userDetails);
-//        return ResponseEntity.ok(orderService.getAllOrdersByBuyerUserId(buyer.getUserId()));
-//    }
-
-
 
 }
